@@ -1,0 +1,8 @@
+{
+  "/nurse/vitals/page": "app/nurse/vitals/page.js",
+  "/page": "app/page.js",
+  "/patient/alerts/page": "app/patient/alerts/page.js",
+  "/patient/dashboard/page": "app/patient/dashboard/page.js",
+  "/patient/records/page": "app/patient/records/page.js",
+  "/patient/settings/page": "app/patient/settings/page.js"
+}
