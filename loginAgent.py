@@ -1,0 +1,109 @@
+# login_agent.py
+from langgraph.graph import StateGraph, START, END
+from langchain_openai import ChatOpenAI
+from datetime import datetime
+import os
+from global_state import GLOBAL_STATE
+
+from dotenv import load_dotenv
+load_dotenv()
+
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+
+# ✅ GLOBAL STATE (shared between agents)
+# ----------------------------- #
+# 🧩 NODE FUNCTIONS
+# ----------------------------- #
+def check_password_node(state: dict):
+    """Check if password was entered correctly and update count."""
+    is_correct = state.get("password_correct", False)
+    if not is_correct:
+        GLOBAL_STATE["suspicious_password"] += 1
+    return state
+
+def check_time_node(state: dict):
+    """Check login time window for suspicious activity."""
+    login_time_str = state.get("login_time", None)
+    if not login_time_str:
+        return state
+
+    try:
+        login_time = datetime.fromisoformat(login_time_str)
+        if 1 <= login_time.hour < 4:  # 1 AM to 4 AM
+            GLOBAL_STATE["suspicious_time"] += 1
+    except Exception as e:
+        print("Time parse error:", e)
+    return state
+
+def compute_suspicion_node(state: dict):
+    """Determine overall suspicion level."""
+    pw = GLOBAL_STATE["suspicious_password"]
+    t = GLOBAL_STATE["suspicious_time"]
+
+    if pw > 5 and t == 0:
+        GLOBAL_STATE["login_suspicion"] = "high"
+    elif pw >= 2 and t > 0:
+        GLOBAL_STATE["login_suspicion"] = "high"
+    elif pw == 0 and t > 0:
+        GLOBAL_STATE["login_suspicion"] = "medium"
+    else:
+        GLOBAL_STATE["login_suspicion"] = "low"
+    return state
+
+def generate_message_node(state: dict):
+    """LLM generates contextual message based on suspicion level."""
+    suspicion = GLOBAL_STATE["login_suspicion"]
+    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.3)
+    
+
+    prompt = f"""
+    You are an AI Security Auditor monitoring login activities for a hospital's Electronic Health Record (EHR) portal. 
+
+Using the information below, compose a concise and professional email body for the hospital's cybersecurity team to review a potential access anomaly.
+
+Suspicion Level: {suspicion}
+Incorrect Password Attempts: {GLOBAL_STATE["suspicious_password"]}
+Suspicious Time Occurrences: {GLOBAL_STATE["suspicious_time"]}
+
+Guidelines:
+- Maintain a formal and objective tone.
+- Keep the message short but sufficiently detailed to convey concern.
+- Do not include a subject line.
+- End the message with:
+
+Please verify if this activity was legitimate.
+
+Regards,  
+EHR Security Agent
+    """
+
+
+    if(GLOBAL_STATE["login_suspicion"]=='high'):
+        resp = llm.invoke(prompt)
+        GLOBAL_STATE["login_message"] = resp.content.strip()
+
+    return state
+
+# ----------------------------- #
+# 🧱 BUILD LANGGRAPH
+# ----------------------------- #
+graph = StateGraph(dict)
+graph.add_node("check_password", check_password_node)
+graph.add_node("check_time", check_time_node)
+graph.add_node("compute_suspicion", compute_suspicion_node)
+graph.add_node("generate_message", generate_message_node)
+
+graph.add_edge(START, "check_password")
+graph.add_edge("check_password", "check_time")
+graph.add_edge("check_time", "compute_suspicion")
+graph.add_edge("compute_suspicion", "generate_message")
+graph.add_edge("generate_message", END)
+
+login_agent_graph = graph.compile()
+
+def run_login_agent(password_correct: bool, login_time: str):
+    """Entry point callable from FastAPI."""
+    state = {"password_correct": password_correct, "login_time": login_time}
+    login_agent_graph.invoke(state)
+    return GLOBAL_STATE
+
