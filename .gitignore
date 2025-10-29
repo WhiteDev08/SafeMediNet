@@ -47,3 +47,7 @@ FrontEnd/venv/
 .DS_Store
 Thumbs.db
 .env
+
+.deepeval
+
+.pytest_cache
