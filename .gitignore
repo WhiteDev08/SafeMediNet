@@ -33,3 +33,17 @@ diagnowise-ehr-encryption-firebase-adminsdk-fbsvc-c019587d40.json
 __pycache__
 
 diagnowise-ehr-encryption-firebase-adminsdk-fbsvc-02fad0e53d.json
+
+# Node / Next.js build artifacts
+FrontEnd/.next/
+FrontEnd/node_modules/
+FrontEnd/out/
+
+# Python virtual environment
+venv/
+FrontEnd/venv/
+
+# OS / Editor junk
+.DS_Store
+Thumbs.db
+.env

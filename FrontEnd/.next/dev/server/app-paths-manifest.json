@@ -1,8 +1,11 @@
 {
+  "/doctor/dashboard/page": "app/doctor/dashboard/page.js",
+  "/doctor/ehr/page": "app/doctor/ehr/page.js",
+  "/doctor/patients/page": "app/doctor/patients/page.js",
+  "/nurse/dashboard/page": "app/nurse/dashboard/page.js",
   "/nurse/vitals/page": "app/nurse/vitals/page.js",
   "/page": "app/page.js",
   "/patient/alerts/page": "app/patient/alerts/page.js",
   "/patient/dashboard/page": "app/patient/dashboard/page.js",
-  "/patient/records/page": "app/patient/records/page.js",
-  "/patient/settings/page": "app/patient/settings/page.js"
+  "/patient/records/page": "app/patient/records/page.js"
 }

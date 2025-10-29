@@ -1,6 +1,21 @@
-[00:00:01.108] Server  LOG      ✓ Ready in 697ms
-[00:00:09.201] Server  LOG      ○ Compiling /nurse/vitals ...
-[00:00:16.745] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:46.471] Browser ERROR   Error loading medical records: {"code":"failed-precondition","name":"FirebaseError"}
-[00:02:21.975] Browser ERROR   Error loading medical records: {"code":"failed-precondition","name":"FirebaseError"}
-[00:02:26.437] Browser ERROR   Error loading alerts: {"code":"failed-precondition","name":"FirebaseError"}
+[00:00:29.320] Server  LOG      ✓ Ready in 19.4s
+[00:00:32.340] Server  LOG      ○ Compiling /nurse/dashboard ...
+[00:00:34.177] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:53.664] Browser LOG     Fetched 5 patients for doctor DOC
+[00:02:01.417] Browser LOG     Fetched 5 patients for EHR view
+[00:05:50.160] Server  LOG      ✓ Compiled in 161ms
+[00:05:52.980] Browser WARN    Error loading audit logs: {"code":"failed-precondition","name":"FirebaseError"}
+[00:05:52.980] Browser LOG     Loaded 1 records for patient JAKE
+[00:07:46.437] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:10:32.529] Browser LOG     doctor created successfully: DOC001
+[00:11:46.378] Browser LOG     nurse created successfully: NURSE001
+[00:13:41.937] Browser LOG     Patient created successfully: PATIENT_001
+[00:14:03.336] Browser LOG     Fetched 2 patients for doctor DOC001
+[00:14:45.649] Browser LOG     Fetched 2 patients for EHR view
+[00:15:21.588] Browser LOG     Fetched 2 patients for doctor DOC001
+[00:16:06.977] Browser LOG     ✅ Vitals updated and agent triggered successfully
+[00:16:06.977] Browser LOG     ✅ Vitals submitted successfully
+[00:17:19.986] Browser WARN    Error loading audit logs: {"code":"failed-precondition","name":"FirebaseError"}
+[00:17:19.986] Browser LOG     Loaded 1 records for patient PATIENT_001
+[00:17:30.535] Browser WARN    Error loading audit logs: {"code":"failed-precondition","name":"FirebaseError"}
+[00:17:30.535] Browser LOG     Loaded 1 records for patient PATIENT_001

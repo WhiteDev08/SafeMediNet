@@ -2,7 +2,7 @@
 "[project]/firebase.ts [app-client] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
-// firebase.ts - Database & Backend Integration Only
+// firebase.ts - Database & Backend Integration
 __turbopack_context__.s([
     "createDoctor",
     ()=>createDoctor,
@@ -38,13 +38,10 @@ __turbopack_context__.s([
     ()=>verifyPassword
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$buffer$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/compiled/buffer/index.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/app/dist/esm/index.esm.js [app-client] (ecmascript) <locals>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/app/dist/esm/index.esm.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$firestore$2f$dist$2f$esm$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/firestore/dist/esm/index.esm.js [app-client] (ecmascript) <locals>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/firestore/dist/index.esm.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$crypto$2d$browserify$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/crypto-browserify/index.js [app-client] (ecmascript)");
-;
 ;
 ;
 // ============================================================================
@@ -58,12 +55,10 @@ const firebaseConfig = {
     messagingSenderId: ("TURBOPACK compile-time value", "271363443305"),
     appId: ("TURBOPACK compile-time value", "1:271363443305:web:9c60fdeeb1bbebdf3f70f8")
 };
-// Security configuration
-const ENCRYPTION_KEY = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.ENCRYPTION_KEY || ("TURBOPACK compile-time value", "SafeMediNet-Ultra-Secure-Key-2025-Must-Be-32-Chars-Long!") || '';
-const ENCRYPTION_SALT = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.ENCRYPTION_SALT || ("TURBOPACK compile-time value", "SafeMediNetEncryptionSalt2025") || 'SafeMediNetEncryptionSalt2025';
-const PASSWORD_SALT_ROUNDS = parseInt(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.PASSWORD_SALT_ROUNDS || ("TURBOPACK compile-time value", "10000") || '10000');
+const ENCRYPTION_KEY = ("TURBOPACK compile-time value", "SafeMediNet-Ultra-Secure-Key-2025-Must-Be-32-Chars-Long!") || '';
+const ENCRYPTION_SALT = ("TURBOPACK compile-time value", "SafeMediNetEncryptionSalt2025") || 'SafeMediNetEncryptionSalt2025';
+const PASSWORD_SALT_ROUNDS = 100000;
 const BACKEND_URL = ("TURBOPACK compile-time value", "http://127.0.0.1:8000") || 'http://127.0.0.1:8000';
-const ENCRYPTION_ALGORITHM = 'aes-256-cbc';
 function validateEncryptionKey() {
     if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
     ;
@@ -82,61 +77,123 @@ const db = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40
 // ============================================================================
 // ENCRYPTION & HASHING UTILITIES
 // ============================================================================
-function deriveEncryptionKey() {
-    validateEncryptionKey();
-    return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$crypto$2d$browserify$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["scryptSync"](ENCRYPTION_KEY, ENCRYPTION_SALT, 32);
+function stringToUint8Array(str) {
+    return new TextEncoder().encode(str);
 }
-function encryptData(data) {
+function uint8ArrayToHex(arr) {
+    return Array.from(arr).map((b)=>b.toString(16).padStart(2, '0')).join('');
+}
+function hexToUint8Array(hex) {
+    const matches = hex.match(/.{1,2}/g);
+    if (!matches) throw new Error('Invalid hex string');
+    return new Uint8Array(matches.map((byte)=>parseInt(byte, 16)));
+}
+async function deriveEncryptionKey() {
+    validateEncryptionKey();
+    const keyMaterial = await crypto.subtle.importKey('raw', stringToUint8Array(ENCRYPTION_KEY), 'PBKDF2', false, [
+        'deriveBits',
+        'deriveKey'
+    ]);
+    return crypto.subtle.deriveKey({
+        name: 'PBKDF2',
+        salt: stringToUint8Array(ENCRYPTION_SALT),
+        iterations: PASSWORD_SALT_ROUNDS,
+        hash: 'SHA-256'
+    }, keyMaterial, {
+        name: 'AES-GCM',
+        length: 256
+    }, false, [
+        'encrypt',
+        'decrypt'
+    ]);
+}
+async function encryptData(data) {
     try {
         validateEncryptionKey();
         const text = typeof data === 'string' ? data : JSON.stringify(data);
-        const iv = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$crypto$2d$browserify$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["randomBytes"](16);
-        const key = deriveEncryptionKey();
-        const cipher = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$crypto$2d$browserify$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createCipheriv"](ENCRYPTION_ALGORITHM, key, iv);
-        let encrypted = cipher.update(text, 'utf8', 'hex');
-        encrypted += cipher.final('hex');
-        return `${iv.toString('hex')}:${encrypted}`;
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const key = await deriveEncryptionKey();
+        const encrypted = await crypto.subtle.encrypt({
+            name: 'AES-GCM',
+            iv
+        }, key, stringToUint8Array(text));
+        const encryptedArray = new Uint8Array(encrypted);
+        return `${uint8ArrayToHex(iv)}:${uint8ArrayToHex(encryptedArray)}`;
     } catch (error) {
         console.error('Encryption error:', error);
         throw new Error('Failed to encrypt data');
     }
 }
-function decryptData(cipherText) {
+async function decryptData(cipherText) {
     try {
         validateEncryptionKey();
-        const [ivHex, encrypted] = cipherText.split(':');
-        if (!ivHex || !encrypted) {
+        const [ivHex, encryptedHex] = cipherText.split(':');
+        if (!ivHex || !encryptedHex) {
             throw new Error('Invalid cipher text format');
         }
-        const iv = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$buffer$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Buffer"].from(ivHex, 'hex');
-        const key = deriveEncryptionKey();
-        const decipher = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$crypto$2d$browserify$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createDecipheriv"](ENCRYPTION_ALGORITHM, key, iv);
-        let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-        decrypted += decipher.final('utf8');
+        const iv = hexToUint8Array(ivHex);
+        const encrypted = hexToUint8Array(encryptedHex);
+        const key = await deriveEncryptionKey();
+        const decrypted = await crypto.subtle.decrypt({
+            name: 'AES-GCM',
+            iv
+        }, key, encrypted);
+        const decryptedText = new TextDecoder().decode(decrypted);
         try {
-            return JSON.parse(decrypted);
+            return JSON.parse(decryptedText);
         } catch  {
-            return decrypted;
+            return decryptedText;
         }
     } catch (error) {
         console.error('Decryption error:', error);
         throw new Error('Failed to decrypt data');
     }
 }
-function hashPassword(password, salt) {
+async function hashPassword(password, salt) {
     validateEncryptionKey();
-    return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$crypto$2d$browserify$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["pbkdf2Sync"](password, salt, PASSWORD_SALT_ROUNDS, 64, 'sha512').toString('hex');
+    const keyMaterial = await crypto.subtle.importKey('raw', stringToUint8Array(password), 'PBKDF2', false, [
+        'deriveBits'
+    ]);
+    const derivedBits = await crypto.subtle.deriveBits({
+        name: 'PBKDF2',
+        salt: stringToUint8Array(salt),
+        iterations: PASSWORD_SALT_ROUNDS,
+        hash: 'SHA-512'
+    }, keyMaterial, 512);
+    return uint8ArrayToHex(new Uint8Array(derivedBits));
 }
 function generateSalt() {
-    return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$crypto$2d$browserify$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["randomBytes"](16).toString('hex');
+    const saltArray = crypto.getRandomValues(new Uint8Array(16));
+    return uint8ArrayToHex(saltArray);
 }
-function verifyPassword(password, storedHash, storedSalt) {
-    const hash = hashPassword(password, storedSalt);
-    return hash === storedHash;
+async function verifyPassword(password, storedHash, storedSalt) {
+    try {
+        const hash = await hashPassword(password, storedSalt);
+        return hash === storedHash;
+    } catch (error) {
+        console.error('Password verification error:', error);
+        return false;
+    }
+}
+// ============================================================================
+// HELPER: CREATE DEFAULT SESSION STATE
+// ============================================================================
+function createDefaultSessionState() {
+    return {
+        suspicious_password: 0,
+        suspicious_time: 0,
+        login_suspicion: "low",
+        login_message: "No suspicious Activities Found.",
+        patient_id: null,
+        previous_parameters: {},
+        changed_parameters: {},
+        total_change: 0,
+        change_count: 0,
+        timestamp: null
+    };
 }
 async function handleLogin(userId, password, role) {
     try {
-        // 1. Get user from Firestore
         const collectionName = role === 'doctor' ? 'doctors' : role === 'nurse' ? 'nurses' : 'patients';
         const userRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(db, collectionName, userId);
         const userDoc = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDoc"])(userRef);
@@ -147,9 +204,17 @@ async function handleLogin(userId, password, role) {
             };
         }
         const userData = userDoc.data();
-        // 2. Verify password
-        const passwordCorrect = verifyPassword(password, userData.hashedPassword, userData.passwordSalt);
-        // 3. Call FastAPI /update_login endpoint
+        // Verify password with proper error handling
+        if (!userData.hashedPassword || !userData.passwordSalt) {
+            console.error('Missing password data for user:', userId);
+            return {
+                success: false,
+                error: 'User authentication data corrupted'
+            };
+        }
+        const passwordCorrect = await verifyPassword(password, userData.hashedPassword, userData.passwordSalt);
+        const sessionState = userData.session_state || {};
+        // Call backend API
         try {
             const response = await fetch(`${BACKEND_URL}/update_login`, {
                 method: 'POST',
@@ -160,7 +225,8 @@ async function handleLogin(userId, password, role) {
                     user_id: userId,
                     password_correct: passwordCorrect,
                     login_time: new Date().toISOString(),
-                    role: role
+                    role: role,
+                    global_state: sessionState
                 })
             });
             if (!response.ok) {
@@ -168,9 +234,7 @@ async function handleLogin(userId, password, role) {
             }
         } catch (backendError) {
             console.warn('Backend /update_login unavailable:', backendError);
-        // Continue with login even if backend is down
         }
-        // 4. If password correct, update lastLogin
         if (passwordCorrect) {
             await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["updateDoc"])(userRef, {
                 lastLogin: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Timestamp"].now()
@@ -193,13 +257,12 @@ async function handleLogin(userId, password, role) {
         console.error('Login error:', error);
         return {
             success: false,
-            error: 'Login failed'
+            error: 'Login failed. Please try again.'
         };
     }
 }
 async function nurseUpdateVitals(patientId, nurseId, newVitals) {
     try {
-        // STEP 1: Fetch current vitals from database (will become previousParameters)
         const patientRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(db, 'patients', patientId);
         const patientDoc = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDoc"])(patientRef);
         if (!patientDoc.exists()) {
@@ -209,12 +272,10 @@ async function nurseUpdateVitals(patientId, nurseId, newVitals) {
             };
         }
         const patientData = patientDoc.data();
-        // Get current vitals (decrypt if exists)
-        let previousParameters = null;
+        let previousParameters;
         if (patientData.vitalsEncrypted) {
-            previousParameters = decryptData(patientData.vitalsEncrypted);
+            previousParameters = await decryptData(patientData.vitalsEncrypted);
         } else {
-            // If no previous vitals, use default values
             previousParameters = {
                 heartRate: 0,
                 systolicBP: 0,
@@ -227,16 +288,13 @@ async function nurseUpdateVitals(patientId, nurseId, newVitals) {
                 height: 0
             };
         }
-        // STEP 2: Encrypt new vitals and update database
-        const previousEncrypted = encryptData(previousParameters);
-        const parametersEncrypted = encryptData(newVitals);
-        // Update patient document
+        const previousEncrypted = await encryptData(previousParameters);
+        const parametersEncrypted = await encryptData(newVitals);
         await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["updateDoc"])(patientRef, {
             previousVitalsEncrypted: previousEncrypted,
             vitalsEncrypted: parametersEncrypted,
             lastUpdated: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Timestamp"].now()
         });
-        // Store in iomt_data collection for history
         await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["addDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["collection"])(db, 'iomt_data'), {
             patientId: patientId,
             nurseId: nurseId,
@@ -245,9 +303,9 @@ async function nurseUpdateVitals(patientId, nurseId, newVitals) {
             parametersEncrypted: parametersEncrypted,
             timestamp: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Timestamp"].now()
         });
-        // STEP 3: Call FastAPI /update_vitals endpoint with decrypted data
         const payload = {
             patientId: patientId,
+            nurseId: nurseId,
             timestamp: new Date().toISOString(),
             previousParameters: previousParameters,
             parameters: newVitals
@@ -290,14 +348,10 @@ async function getPatientVitals(patientId) {
     try {
         const patientRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(db, 'patients', patientId);
         const patientDoc = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDoc"])(patientRef);
-        if (!patientDoc.exists()) {
+        if (!patientDoc.exists() || !patientDoc.data().vitalsEncrypted) {
             return null;
         }
-        const patientData = patientDoc.data();
-        if (!patientData.vitalsEncrypted) {
-            return null;
-        }
-        return decryptData(patientData.vitalsEncrypted);
+        return await decryptData(patientDoc.data().vitalsEncrypted);
     } catch (error) {
         console.error('Error getting patient vitals:', error);
         return null;
@@ -339,14 +393,13 @@ async function getNursePatients(nurseId) {
 async function createUser(userData, role) {
     try {
         const collectionName = role === 'doctor' ? 'doctors' : role === 'nurse' ? 'nurses' : 'patients';
-        // Check if user already exists
         const userRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(db, collectionName, userData.id);
         const existingUser = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDoc"])(userRef);
         if (existingUser.exists()) {
             throw new Error(`User ID ${userData.id} already exists`);
         }
         const salt = generateSalt();
-        const hashedPassword = hashPassword(userData.password, salt);
+        const hashedPassword = await hashPassword(userData.password, salt);
         const userDoc = {
             ...userData,
             hashedPassword,
@@ -355,11 +408,12 @@ async function createUser(userData, role) {
             loginAttempts: 0,
             wrongTimeAttempts: 0,
             threatLevel: "low",
-            lastLogin: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Timestamp"].now()
+            lastLogin: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Timestamp"].now(),
+            session_state: createDefaultSessionState()
         };
         delete userDoc.password;
         delete userDoc.confirmPassword;
-        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["setDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(db, collectionName, userData.id), userDoc);
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["setDoc"])(userRef, userDoc);
         console.log(`${role} created successfully:`, userData.id);
     } catch (error) {
         console.error('Error creating user:', error);
@@ -394,47 +448,47 @@ async function createNurse(nurseData) {
     await createUser(userData, 'nurse');
 }
 async function createPatient(patientData) {
-    const salt = generateSalt();
-    const hashedPassword = hashPassword(patientData.password, salt);
-    const patientDoc = {
-        id: patientData.id,
-        name: patientData.name,
-        email: patientData.email,
-        hashedPassword,
-        passwordSalt: salt,
-        phone: patientData.phone,
-        dob: patientData.dob,
-        bloodType: patientData.bloodType,
-        assignedDoctor: patientData.assignedDoctor || '',
-        assignedNurse: patientData.assignedNurse || '',
-        vitalsEncrypted: '',
-        previousVitalsEncrypted: '',
-        lastUpdated: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Timestamp"].now()
-    };
-    // Check if patient already exists
-    const patientRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(db, 'patients', patientData.id);
-    const existingPatient = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDoc"])(patientRef);
-    if (existingPatient.exists()) {
-        throw new Error(`Patient ID ${patientData.id} already exists`);
+    try {
+        const patientRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(db, 'patients', patientData.id);
+        const existingPatient = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDoc"])(patientRef);
+        if (existingPatient.exists()) {
+            throw new Error(`Patient ID ${patientData.id} already exists`);
+        }
+        const salt = generateSalt();
+        const hashedPassword = await hashPassword(patientData.password, salt);
+        const patientDoc = {
+            id: patientData.id,
+            name: patientData.name,
+            email: patientData.email,
+            hashedPassword,
+            passwordSalt: salt,
+            phone: patientData.phone,
+            dob: patientData.dob,
+            bloodType: patientData.bloodType,
+            assignedDoctor: patientData.assignedDoctor || '',
+            assignedNurse: patientData.assignedNurse || '',
+            vitalsEncrypted: '',
+            previousVitalsEncrypted: '',
+            lastUpdated: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Timestamp"].now(),
+            session_state: createDefaultSessionState()
+        };
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["setDoc"])(patientRef, patientDoc);
+        console.log('Patient created successfully:', patientData.id);
+    } catch (error) {
+        console.error('Error creating patient:', error);
+        throw error;
     }
-    await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["setDoc"])(patientRef, patientDoc);
-    console.log('Patient created successfully:', patientData.id);
 }
 const __TURBOPACK__default__export__ = {
-    // Authentication & Login
     handleLogin,
-    // Nurse Portal - Vitals Update
     nurseUpdateVitals,
-    // Data Retrieval
     getPatientVitals,
     getPatientData,
     getNursePatients,
-    // User Management
     createUser,
     createDoctor,
     createNurse,
     createPatient,
-    // Encryption Utilities
     encryptData,
     decryptData,
     hashPassword,

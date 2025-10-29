@@ -1,11 +1,19 @@
 "use client"
 
-import { Activity, Users, FileText, Clock } from "lucide-react"
+import { Activity, Users, FileText, Clock, AlertTriangle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { useEffect, useState } from "react"
 import { db } from "@/firebase"
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore"
+import { collection, onSnapshot, query, orderBy, limit, doc, getDoc } from "firebase/firestore"
+
+interface RecentUpdate {
+  patientName: string
+  nurseName: string
+  action: string
+  time: string
+  threat?: string
+}
 
 export default function DoctorDashboard() {
   const { user } = useAuth()
@@ -17,53 +25,90 @@ export default function DoctorDashboard() {
     pendingReviews: 0,
     iomtDevices: 0,
   })
-  const [recentUpdates, setRecentUpdates] = useState<
-    { patient: string; action: string; time: string }[]
-  >([])
+  const [recentUpdates, setRecentUpdates] = useState<RecentUpdate[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // 🔥 Fetch data from Firestore (Realtime)
   useEffect(() => {
-    // Total Patients
+    setLoading(true)
+
+    // Listen to patients collection
     const unsubPatients = onSnapshot(collection(db, "patients"), (snap) => {
       setDashboardStats((prev) => ({ ...prev, totalPatients: snap.size }))
     })
 
-    // Active EHR Records
-    const unsubEHR = onSnapshot(collection(db, "ehr_records"), (snap) => {
-      setDashboardStats((prev) => ({ ...prev, activeRecords: snap.size }))
-    })
-
-    // Pending Reviews
-    const unsubReviews = onSnapshot(collection(db, "reviews"), (snap) => {
-      const pendingCount = snap.docs.filter((doc) => doc.data().status === "pending").length
-      setDashboardStats((prev) => ({ ...prev, pendingReviews: pendingCount }))
-    })
-
-    // IoMT Devices
-    const unsubDevices = onSnapshot(collection(db, "iomt_logs"), (snap) => {
+    // Listen to iomt_data collection for recent updates and device count
+    const iomtQuery = query(
+      collection(db, "iomt_data"),
+      orderBy("timestamp", "desc"),
+      limit(10)
+    )
+    
+    const unsubIomt = onSnapshot(iomtQuery, async (snap) => {
       setDashboardStats((prev) => ({ ...prev, iomtDevices: snap.size }))
+
+      // Get recent updates with patient and nurse names
+      const updates: RecentUpdate[] = []
+      
+      for (const docSnapshot of snap.docs) {
+        const data = docSnapshot.data()
+        
+        // Fetch patient name
+        let patientName = data.patientId
+        try {
+          const patientRef = doc(db, 'patients', data.patientId)
+          const patientDoc = await getDoc(patientRef)
+          if (patientDoc.exists()) {
+            patientName = patientDoc.data()?.name || data.patientId
+          }
+        } catch (error) {
+          console.error('Error fetching patient:', error)
+        }
+        
+        // Fetch nurse name
+        let nurseName = data.nurseId
+        try {
+          const nurseRef = doc(db, 'nurses', data.nurseId)
+          const nurseDoc = await getDoc(nurseRef)
+          if (nurseDoc.exists()) {
+            nurseName = nurseDoc.data()?.name || data.nurseId
+          }
+        } catch (error) {
+          console.error('Error fetching nurse:', error)
+        }
+
+        updates.push({
+          patientName: patientName || 'Unknown Patient',
+          nurseName: nurseName || 'Unknown Nurse',
+          action: `Updated vitals via ${data.deviceType}`,
+          time: data.timestamp?.toDate?.() 
+            ? new Date(data.timestamp.toDate()).toLocaleString() 
+            : 'Recently',
+        })
+      }
+      
+      setRecentUpdates(updates.slice(0, 5))
+      setLoading(false)
     })
 
-    // Recent Patient Updates
-    const updatesQuery = query(collection(db, "patient_updates"), orderBy("timestamp", "desc"))
-    const unsubUpdates = onSnapshot(updatesQuery, (snap) => {
-      const updates = snap.docs.map((doc) => {
-        const d = doc.data()
-        return {
-          patient: d.patientName || "Unknown",
-          action: d.action || "Update",
-          time: new Date(d.timestamp?.toDate?.() || Date.now()).toLocaleString(),
-        }
-      })
-      setRecentUpdates(updates.slice(0, 5))
+    // Count patients with high threat levels as "pending reviews"
+    const unsubPatientsReview = onSnapshot(collection(db, "patients"), (snap) => {
+      const highThreatCount = snap.docs.filter(
+        (doc) => doc.data().threatLevel === "high" || doc.data().session_state?.login_suspicion === "high"
+      ).length
+      setDashboardStats((prev) => ({ ...prev, pendingReviews: highThreatCount }))
+    })
+
+    // Active records = patients with vitals
+    const unsubActiveRecords = onSnapshot(collection(db, "patients"), (snap) => {
+      const activeCount = snap.docs.filter((doc) => doc.data().vitalsEncrypted).length
+      setDashboardStats((prev) => ({ ...prev, activeRecords: activeCount }))
     })
 
     return () => {
       unsubPatients()
-      unsubEHR()
-      unsubReviews()
-      unsubDevices()
-      unsubUpdates()
+      unsubIomt()
+      unsubPatientsReview()
+      unsubActiveRecords()
     }
   }, [])
 
@@ -83,14 +128,14 @@ export default function DoctorDashboard() {
       iconColor: "text-green-600",
     },
     {
-      label: "Pending Reviews",
+      label: "High Risk Patients",
       value: dashboardStats.pendingReviews,
-      icon: Clock,
+      icon: AlertTriangle,
       bgColor: "bg-orange-100",
       iconColor: "text-orange-600",
     },
     {
-      label: "IoMT Devices",
+      label: "Recent IoMT Updates",
       value: dashboardStats.iomtDevices,
       icon: Activity,
       bgColor: "bg-purple-100",
@@ -103,7 +148,7 @@ export default function DoctorDashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground">
-          Welcome back, Dr. {user?.email?.split("@")[0]}
+          Welcome back, Dr. {user?.email?.split("@")[0] || user?.name}
         </h1>
         <p className="mt-2 text-secondary">Here's your healthcare dashboard overview</p>
       </div>
@@ -131,9 +176,11 @@ export default function DoctorDashboard() {
       {/* Recent Activity */}
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="card p-6 lg:col-span-2">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">Recent Patient Updates</h2>
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Recent IoMT Updates</h2>
           <div className="space-y-4">
-            {recentUpdates.length === 0 ? (
+            {loading ? (
+              <p className="text-secondary">Loading updates...</p>
+            ) : recentUpdates.length === 0 ? (
               <p className="text-secondary">No recent updates found.</p>
             ) : (
               recentUpdates.map((item, idx) => (
@@ -142,8 +189,9 @@ export default function DoctorDashboard() {
                   className="flex items-center justify-between border-b border-border pb-4 last:border-0"
                 >
                   <div>
-                    <p className="font-medium text-foreground">{item.patient}</p>
+                    <p className="font-medium text-foreground">{item.patientName}</p>
                     <p className="text-sm text-secondary">{item.action}</p>
+                    <p className="text-xs text-secondary">by {item.nurseName}</p>
                   </div>
                   <p className="text-xs text-secondary">{item.time}</p>
                 </div>
@@ -156,56 +204,21 @@ export default function DoctorDashboard() {
         <div className="card p-6">
           <h2 className="mb-4 text-lg font-semibold text-foreground">Quick Actions</h2>
           <div className="space-y-3">
-            <button onClick={() => setShowAddPatient(true)} className="btn-primary w-full">
-              Add Patient
+            <button onClick={() => router.push("/doctor/patients")} className="btn-primary w-full">
+              View All Patients
             </button>
             <button onClick={() => router.push("/doctor/ehr")} className="btn-secondary w-full">
-              View EHR
+              View EHR Records
             </button>
             <button onClick={() => router.push("/doctor/iomt/logs")} className="btn-secondary w-full">
               Check IoMT Logs
             </button>
+            <button onClick={() => router.push("/doctor/alerts")} className="btn-secondary w-full">
+              Security Alerts
+            </button>
           </div>
         </div>
       </div>
-
-      {/* Add Patient Modal */}
-      {showAddPatient && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="card mx-4 w-full max-w-md p-6">
-            <h3 className="text-lg font-semibold text-foreground">Add New Patient</h3>
-            <div className="mt-4 space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-foreground">Patient Name</label>
-                <input type="text" placeholder="Enter patient name" className="input-field" />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-foreground">Email</label>
-                <input type="email" placeholder="patient@example.com" className="input-field" />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-foreground">Phone</label>
-                <input type="tel" placeholder="(555) 123-4567" className="input-field" />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button onClick={() => setShowAddPatient(false)} className="btn-secondary flex-1">
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    // 🔥 In future: Add patient to Firestore
-                    setShowAddPatient(false)
-                    alert("Patient added successfully!")
-                  }}
-                  className="btn-primary flex-1"
-                >
-                  Add Patient
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
